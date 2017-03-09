@@ -1,0 +1,67 @@
+
+----------------------------------
+--		Library Declaration 	--
+----------------------------------
+-- Like any other programming language, we should declare libraries
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+----------------------------------
+--		Entity Declaration 		--
+----------------------------------
+-- Here we specify all input/output ports
+
+entity LCD_codes is
+	port(
+		reset_btn : in std_logic;
+		lcd : out STD_LOGIC_VECTOR(7 downto 0)
+	);
+end entity;
+
+----------------------------------
+--	Architecture Declaration 	--
+----------------------------------
+--	here we put the description code of the design
+
+architecture behave of LCD_codes is
+
+-- signal declaration
+
+signal code : STD_LOGIC_VECTOR(7 downto 0);
+signal num  : character;
+
+begin
+	
+	display : process( num , reset_btn )
+	begin
+		num <= 'd';
+		if reset_btn = '0' then
+			code <= "11111111";
+		elsif num = '0' then 
+			code <= "00110000";
+		elsif num = '1' then 
+			code <= "00110001";
+		elsif num = '2' then
+			code <= "00110010";
+		elsif num = '3' then
+			code <= "00110011";
+		elsif num = '4' then
+			code <= "00110100";
+		elsif num = '5' then
+			code <= "00110101";
+		elsif num = '6' then
+			code <= "00110110";
+		elsif num = '7' then
+			code <= "00110111";
+		elsif num = '8' then
+			code <= "00111000";
+		elsif num = '9' then
+			code <= "00111001";
+		elsif num = 'd' then
+			code <= "00101110";
+		end if;
+		end process;
+	lcd <= code;
+	end behave;
