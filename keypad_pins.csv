@@ -1,0 +1,39 @@
+# Copyright (C) 1991-2013 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+
+# Quartus II 64-Bit Version 13.0.0 Build 156 04/24/2013 SJ Web Edition
+# File: F:\Academics\IITB\semester 4\Electronics Lab 3\Project\keypad_led\keypad_pins.csv
+# Generated on: Sat Mar 18 20:51:56 2017
+
+# Note: The column header names should not be changed if you wish to import this .csv file into the Quartus II software.
+
+To,Direction,Location,I/O Bank,VREF Group,I/O Standard,Reserved,Current Strength,Slew Rate,Differential Pair
+clk_50mhz,Input,PIN_R8,3,B3_N0,,,,,
+column_out[3],Output,PIN_R11,4,B4_N0,,,,,
+column_out[2],Output,PIN_R10,4,B4_N0,,,,,
+column_out[1],Output,PIN_P9,4,B4_N0,,,,,
+column_out[0],Output,PIN_N11,4,B4_N0,,,,,
+lcd[7],Output,PIN_L3,2,B2_N0,,,,,
+lcd[6],Output,PIN_B1,1,B1_N0,,,,,
+lcd[5],Output,PIN_F3,1,B1_N0,,,,,
+lcd[4],Output,PIN_D1,1,B1_N0,,,,,
+lcd[3],Output,PIN_A11,7,B7_N0,,,,,
+lcd[2],Output,PIN_B13,7,B7_N0,,,,,
+lcd[1],Output,PIN_A13,7,B7_N0,,,,,
+lcd[0],Output,PIN_A15,7,B7_N0,,,,,
+reset_btn,Input,PIN_J15,5,B5_N0,,,,,
+row_in[3],Input,PIN_K16,5,B5_N0,,,,,
+row_in[2],Input,PIN_L15,5,B5_N0,,,,,
+row_in[1],Input,PIN_P16,5,B5_N0,,,,,
+row_in[0],Input,PIN_N16,5,B5_N0,,,,,
