@@ -1,0 +1,178 @@
+----------------------------------
+--		Library Declaration 	--
+----------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
+
+----------------------------------
+--		Entity Declaration 		--
+----------------------------------
+
+entity qft_2qbit is
+	port(
+		clk : in std_logic;
+		reset : in std_logic; -- (Key0) on keypress, reset becomes zero, state becomes idle and input is taken. Press before start.
+		start : in std_logic; -- (key1) on keypress, start becomes 0 and computation starts.
+--		a0RE : in sfixed(4 downto -4); 
+--		a1RE : in sfixed(4 downto -4);
+--		a2RE : in sfixed(4 downto -4);
+--		a3RE : in sfixed(4 downto -4);
+--		a0IM : in sfixed(4 downto -4); 
+--		a1IM : in sfixed(4 downto -4); 
+--		a2IM : in sfixed(4 downto -4);
+--		a3IM : in sfixed(4 downto -4);
+		b0RE : out sfixed(4 downto -4); -- first bit represents sign with remaining in 2s complement for negative number.
+		b1RE : out sfixed(4 downto -4); -- Actually only 8 out of 9 bits for storing data.
+		b2RE : out sfixed(4 downto -4);
+		b3RE : out sfixed(4 downto -4);
+		b0IM : out sfixed(4 downto -4); 
+		b1IM : out sfixed(4 downto -4); 
+		b2IM : out sfixed(4 downto -4);
+		b3IM : out sfixed(4 downto -4)
+	);
+end entity;
+
+----------------------------------
+--	Architecture Declaration 	--
+----------------------------------
+
+architecture compute of qft_2qbit is
+ 
+------------------------
+-- signal declaration --
+------------------------
+type ket is array(0 to 3) of sfixed(4 downto -4);
+signal QstateRE, QstateRE_next, QstateIM, QstateIM_next : ket := ("000000000", "000000000", "000000000", "000000000"); -- can this be done in better way ?
+
+type FSM_state_type is (idle,hadamard1,hadamard2,rotation1,swap,finish); -- For 2 qbits 2 hadamard gates and 1 rotation gate.
+signal state, state_next : FSM_state_type:=idle;
+
+------------------------
+--      processes     --
+------------------------
+begin
+process(clk,reset)
+       begin
+            if reset = '0' then
+                 state <= idle;
+					  --real part
+					  QstateRE(0) <= "000010000";--"000011000";--|00> QstateRE(0) = 1.5 in decimal
+					  QstateRE(1) <= "000100000";--"000110000";--|01> QstateRE(1) = 3.0 in decimal
+					  QstateRE(2) <= "000100000";--"000010100";--|10> QstateRE(2) = 1.25 in decimal
+					  QstateRE(3) <= "000110000";--"001000010";--|11> QstateRE(3) = 4.125 in decimal
+					  --imaginary part
+					  QstateIM(0) <= "000110000";--"000010001";--|00> QstateIM(0) = 1.0625 in decimal
+					  QstateIM(1) <= "000010000";--"000100010";--|01> QstateIM(1) = 2.125 in decimal
+					  QstateIM(2) <= "000100000";--"000001000";--|10> QstateIM(2) = 0.5 in decimal
+					  QstateIM(3) <= "000010000";--"001010000";--|11> QstateIM(3) = 5.0 in decimal
+           elsif clk = '1' and clk'event then --falling_edge(clk) then --
+                 state<=state_next;
+					  QstateRE <= QstateRE_next;
+					  QstateIM <= QstateIM_next;
+           end if;
+       end process;
+ 
+	QFT : process( clk, state, start )
+	variable temp1RE,temp2RE,temp3RE,temp4RE : sfixed(5 downto -4) := "0000000000";
+	variable temp1IM,temp2IM,temp3IM,temp4IM : sfixed(5 downto -4) := "0000000000";
+	begin
+	-- avoid latch ( I'm not sure why this is done)
+      state_next<=state;
+		QstateRE_next<=QstateRE;
+		QstateIM_next<=QstateIM;
+	--FSM
+		case state is
+		when idle =>
+			if start ='0' then
+				state_next <= hadamard1;
+			else 
+				state_next <= idle;
+			end if;
+		when hadamard1 =>
+			 --calculate real part
+			 temp1RE := QstateRE(0) + QstateRE(2);
+			 temp2RE := QstateRE(1) + QstateRE(3);
+			 temp3RE := QstateRE(0) - QstateRE(2);
+			 temp4RE := QstateRE(1) - QstateRE(3);			 
+			 --calculate imagniary part
+			 temp1IM := QstateIM(0) + QstateIM(2);
+			 temp2IM := QstateIM(1) + QstateIM(3);
+			 temp3IM := QstateIM(0) - QstateIM(2);
+			 temp4IM := QstateIM(1) - QstateIM(3);		 
+			 --update ket
+			 QstateRE_next(0) <= resize(temp1RE,QstateRE_next(0));--temp1RE(4 downto -4);
+			 QstateRE_next(1) <= resize(temp2RE,QstateRE_next(1));--temp2RE(4 downto -4);
+			 QstateRE_next(2) <= resize(temp3RE,QstateRE_next(2));--temp3RE(4 downto -4);
+			 QstateRE_next(3) <= resize(temp4RE,QstateRE_next(3));--temp4RE(4 downto -4);
+			 
+			 QstateIM_next(0) <= resize(temp1IM,QstateIM_next(0));--temp1IM(4 downto -4);
+			 QstateIM_next(1) <= resize(temp2IM,QstateIM_next(1));--temp2IM(4 downto -4);
+			 QstateIM_next(2) <= resize(temp3IM,QstateIM_next(2));--temp3IM(4 downto -4);
+			 QstateIM_next(3) <= resize(temp4IM,QstateIM_next(3));--temp4IM(4 downto -4);
+			 
+			 --next state
+			 state_next <= rotation1;
+			 
+			 
+		when rotation1 =>
+			 --calculate
+			 temp4RE := -QstateIM(3);
+			 --update ket
+			 QstateRE_next(3) <= resize(temp4RE,QstateRE_next(3));
+			 QstateIM_next(3) <= QstateRE(3);
+			 --next state
+			 state_next <= hadamard2;
+			 
+		when hadamard2 =>
+			 --calculate real part		
+			 temp1RE := QstateRE(0) + QstateRE(1);
+			 temp2RE := QstateRE(0) - QstateRE(1);
+			 temp3RE := QstateRE(2) + QstateRE(3);
+			 temp4RE := QstateRE(2) - QstateRE(3);
+			 --calculate imagniary part
+			 temp1IM := QstateIM(0) + QstateIM(1);
+			 temp2IM := QstateIM(0) - QstateIM(1);
+			 temp3IM := QstateIM(2) + QstateIM(3);
+			 temp4IM := QstateIM(2) - QstateIM(3);	
+			 --update ket
+			 QstateRE_next(0) <= resize(temp1RE,QstateRE_next(0));--temp1RE(4 downto -4);
+			 QstateRE_next(1) <= resize(temp2RE,QstateRE_next(1));--temp2RE(4 downto -4);
+			 QstateRE_next(2) <= resize(temp3RE,QstateRE_next(2));--temp3RE(4 downto -4);
+			 QstateRE_next(3) <= resize(temp4RE,QstateRE_next(3));--temp4RE(4 downto -4);
+			 
+			 QstateIM_next(0) <= resize(temp1IM,QstateIM_next(0));--temp1IM(4 downto -4);
+			 QstateIM_next(1) <= resize(temp2IM,QstateIM_next(1));--temp2IM(4 downto -4);
+			 QstateIM_next(2) <= resize(temp3IM,QstateIM_next(2));--temp3IM(4 downto -4);
+			 QstateIM_next(3) <= resize(temp4IM,QstateIM_next(3));--temp4IM(4 downto -4);
+			 --next state
+			 state_next <= swap;
+		
+		when swap =>
+			QstateRE_next(1) <= QstateRE(2);
+			QstateRE_next(2) <= QstateRE(1);
+			QstateIM_next(1) <= QstateIM(2);
+			QstateIM_next(2) <= QstateIM(1);
+			state_next <= finish;
+			 
+		when finish =>
+		    --give output
+			 b0RE <= QstateRE(0);
+			 b1RE <= QstateRE(1);
+			 b2RE <= QstateRE(2);
+			 b3RE <= QstateRE(3);
+			 
+			 b0IM <= QstateIM(0);
+			 b1IM <= QstateIM(1);
+			 b2IM <= QstateIM(2);
+			 b3IM <= QstateIM(3);
+			 state_next <= finish;
+		end case;
+
+	end process QFT;
+
+end compute;
